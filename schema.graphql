@@ -1,0 +1,55 @@
+type MessageExecuted @entity(immutable: true) {
+  id: Bytes!
+  messageId: Bytes! # bytes32
+  sourceChainSelector: BigInt! # uint64
+  offRamp: Bytes! # address
+  calldataHash: Bytes! # bytes32
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OffRampAdded @entity(immutable: true) {
+  id: Bytes!
+  sourceChainSelector: BigInt! # uint64
+  offRamp: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OffRampRemoved @entity(immutable: true) {
+  id: Bytes!
+  sourceChainSelector: BigInt! # uint64
+  offRamp: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OnRampSet @entity(immutable: true) {
+  id: Bytes!
+  destChainSelector: BigInt! # uint64
+  onRamp: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferRequested @entity(immutable: true) {
+  id: Bytes!
+  from: Bytes! # address
+  to: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+type OwnershipTransferred @entity(immutable: true) {
+  id: Bytes!
+  from: Bytes! # address
+  to: Bytes! # address
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}

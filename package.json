@@ -1,0 +1,18 @@
+{
+  "name": "escrow-tracking",
+  "license": "UNLICENSED",
+  "scripts": {
+    "codegen": "graph codegen",
+    "build": "graph build",
+    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ escrow-tracking",
+    "create-local": "graph create --node http://localhost:8020/ escrow-tracking",
+    "remove-local": "graph remove --node http://localhost:8020/ escrow-tracking",
+    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 escrow-tracking",
+    "test": "graph test"
+  },
+  "dependencies": {
+    "@graphprotocol/graph-cli": "0.98.1",
+    "@graphprotocol/graph-ts": "0.37.0"
+  },
+  "devDependencies": { "matchstick-as": "0.6.0" }
+}
