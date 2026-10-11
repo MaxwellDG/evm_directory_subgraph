@@ -53,3 +53,116 @@ type OwnershipTransferred @entity(immutable: true) {
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
+
+# ---------------------------------------------------------------------------
+# Escrow (Sepolia, 0x1Ad0aD503C0769B97DE1d1B2C25521204C935A6b)
+# Mirrors the on-chain `State` enum of the Escrow contract.
+# ---------------------------------------------------------------------------
+
+enum EscrowStatus {
+  CREATED
+  FUNDED
+  CLAIMED
+  DISPUTED
+  RELEASED
+  REFUNDED
+  CANCELLED
+}
+
+"Whether a deal went through (seller paid) or fell through (cancelled/refunded)."
+enum EscrowOutcome {
+  PENDING
+  SUCCEEDED
+  FAILED
+}
+
+enum EscrowEventType {
+  CREATED
+  SELLER_AGREED
+  FUNDED
+  CANCELLED
+  RELEASED
+  REFUNDED
+  DISPUTE_RAISED
+  DISPUTE_ESCALATED
+  DISPUTE_CANCELLED
+  DISPUTE_RESOLVED
+}
+
+enum EscrowParty {
+  NONE
+  BUYER
+  SELLER
+}
+
+"One escrow deal, with its current lifecycle state."
+type Escrow @entity(immutable: false) {
+  "Escrow id as assigned by the contract (decimal string)"
+  id: ID!
+  escrowId: BigInt!
+  contract: Bytes!
+  creator: Bytes!
+  seller: Bytes!
+  "Zero address while the buyer seat is open; set when someone funds"
+  buyer: Bytes!
+  broker: Bytes!
+  "Zero address = native ETH"
+  token: Bytes!
+  amount: BigInt!
+  feeBps: Int!
+  brokerBps: Int!
+  challengeWindow: BigInt!
+  detailsHash: Bytes!
+
+  status: EscrowStatus!
+  outcome: EscrowOutcome!
+  sellerAgreed: Boolean!
+  buyerFunded: Boolean!
+
+  "Buyer deposit (price + buyer-side fee/commission)"
+  deposit: BigInt
+  sellerAmount: BigInt
+  brokerAmount: BigInt
+  feeAmount: BigInt
+  buyerRefundAmount: BigInt
+  "Seller share in bps when settled by DisputeResolved"
+  resolvedSellerBps: Int
+
+  createdAt: BigInt!
+  createdBlock: BigInt!
+  createdTx: Bytes!
+  updatedAt: BigInt!
+  closedAt: BigInt
+
+  events: [EscrowEvent!]! @derivedFrom(field: "escrow")
+}
+
+"Immutable log of every lifecycle event, for history/timelines."
+type EscrowEvent @entity(immutable: true) {
+  id: Bytes!
+  escrow: Escrow!
+  type: EscrowEventType!
+  "msg.sender-equivalent address from the event, when present"
+  actor: Bytes
+  party: EscrowParty
+  "Amount carried by the event (deposit, payout, refund), when present"
+  amount: BigInt
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+"Aggregated success/fail counters. Single entity with id \"global\"."
+type EscrowStats @entity(immutable: false) {
+  id: ID!
+  created: BigInt!
+  funded: BigInt!
+  open: BigInt!
+  succeeded: BigInt!
+  failed: BigInt!
+  released: BigInt!
+  refunded: BigInt!
+  cancelled: BigInt!
+  disputed: BigInt!
+  updatedAt: BigInt!
+}
