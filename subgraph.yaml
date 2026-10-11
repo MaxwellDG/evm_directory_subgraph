@@ -39,3 +39,47 @@ dataSources:
         - event: OwnershipTransferred(indexed address,indexed address)
           handler: handleOwnershipTransferred
       file: ./src/ccip-router.ts
+  # Escrow (UUPS proxy "ParkERC1967Proxy") on Sepolia. Verified implementation:
+  # 0xfe836e1d0e2daC6cAbd7B710804Aa9F2bDf8Df40 (all prior implementations emit the
+  # same events). Uses Chainlink AggregatorV3 price feeds for USD fee tiers.
+  # startBlock = proxy creation block (tx 0xaf25b805...aec90).
+  - kind: ethereum
+    name: Escrow
+    network: sepolia
+    source:
+      address: "0x1Ad0aD503C0769B97DE1d1B2C25521204C935A6b"
+      abi: Escrow
+      startBlock: 11766363
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Escrow
+        - EscrowEvent
+        - EscrowStats
+      abis:
+        - name: Escrow
+          file: ./abis/Escrow.json
+      eventHandlers:
+        - event: EscrowCreated(indexed uint256,indexed address,address,address,address,address,uint256,uint16,uint16,uint32,bytes32)
+          handler: handleEscrowCreated
+        - event: SellerAgreed(indexed uint256,indexed address)
+          handler: handleSellerAgreed
+        - event: EscrowFunded(indexed uint256,indexed address,uint256)
+          handler: handleEscrowFunded
+        - event: EscrowCancelled(indexed uint256,indexed address)
+          handler: handleEscrowCancelled
+        - event: Released(indexed uint256,uint256,uint256,uint256)
+          handler: handleReleased
+        - event: Refunded(indexed uint256,uint256)
+          handler: handleRefunded
+        - event: DisputeRaised(indexed uint256,indexed uint8,uint64)
+          handler: handleDisputeRaised
+        - event: DisputeEscalated(indexed uint256,indexed uint8)
+          handler: handleDisputeEscalated
+        - event: DisputeCancelled(indexed uint256,indexed uint8)
+          handler: handleDisputeCancelled
+        - event: DisputeResolved(indexed uint256,indexed address,uint16,uint256,uint256,uint256)
+          handler: handleDisputeResolved
+      file: ./src/escrow.ts
