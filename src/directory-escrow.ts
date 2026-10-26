@@ -9,7 +9,8 @@ import {
   OfferCancelled,
   SaleExecuted,
   Refunded,
-  OfferExpired
+  OfferExpired,
+  DirectoryEscrow
 } from "../generated/DirectoryEscrow/DirectoryEscrow"
 import { EscrowOffer, EscrowOfferEvent, EscrowOfferStats } from "../generated/schema"
 
@@ -117,6 +118,9 @@ export function handleOfferAccepted(event: OfferAccepted): void {
   offer.buyer = event.params.buyer
   offer.status = "ACCEPTED"
   offer.acceptedAt = event.block.timestamp
+  // settlementPeriod is immutable on the contract, so one eth_call per acceptance is enough.
+  let period = DirectoryEscrow.bind(event.address).try_settlementPeriod()
+  if (!period.reverted) offer.expiresAt = event.block.timestamp.plus(period.value)
   offer.updatedAt = event.block.timestamp
   offer.save()
 

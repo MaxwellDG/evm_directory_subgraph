@@ -220,6 +220,8 @@ type EscrowOffer @entity(immutable: false) {
   createdBlock: BigInt!
   createdTx: Bytes!
   acceptedAt: BigInt
+  "acceptedAt + the contract's settlementPeriod: after this anyone (or the Chainlink Automation upkeep) can expire the offer"
+  expiresAt: BigInt
   "Address that cancelled, refunded or expired the offer"
   closedBy: Bytes
   closedAt: BigInt

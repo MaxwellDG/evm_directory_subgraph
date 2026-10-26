@@ -1,5 +1,6 @@
-import { assert, describe, test, clearStore, afterEach } from "matchstick-as/assembly/index"
-import { Address, BigInt } from "@graphprotocol/graph-ts"
+import { assert, describe, test, clearStore, afterEach, beforeEach, createMockedFunction } from "matchstick-as/assembly/index"
+import { Address, BigInt, ethereum } from "@graphprotocol/graph-ts"
+import { EscrowOffer } from "../generated/schema"
 import {
   handleOfferCreated,
   handleOfferAccepted,
@@ -35,7 +36,15 @@ function listAndAccept(id: i32): void {
   handleOfferAccepted(createOfferAcceptedEvent(offerId, SELLER, BUYER, AMOUNT, 200))
 }
 
+const SETTLEMENT_PERIOD = BigInt.fromI32(604800)
+
 describe("DirectoryEscrow", () => {
+  beforeEach(() => {
+    createMockedFunction(ESCROW, "settlementPeriod", "settlementPeriod():(uint256)").returns([
+      ethereum.Value.fromUnsignedBigInt(SETTLEMENT_PERIOD)
+    ])
+  })
+
   afterEach(() => {
     clearStore()
   })
@@ -52,6 +61,7 @@ describe("DirectoryEscrow", () => {
     assert.fieldEquals("EscrowOffer", key(1), "status", "ACCEPTED")
     assert.fieldEquals("EscrowOffer", key(1), "buyer", BUYER.toHexString())
     assert.fieldEquals("EscrowOffer", key(1), "acceptedAt", "200")
+    assert.fieldEquals("EscrowOffer", key(1), "expiresAt", SETTLEMENT_PERIOD.plus(BigInt.fromI32(200)).toString())
 
     handleSaleExecuted(createSaleExecutedEvent(offerId, SELLER, BUYER, AMOUNT, USD, 300))
     assert.fieldEquals("EscrowOffer", key(1), "status", "COMPLETED")
@@ -103,6 +113,14 @@ describe("DirectoryEscrow", () => {
     assert.fieldEquals("EscrowOfferStats", "global", "expired", "1")
     assert.fieldEquals("EscrowOfferStats", "global", "failed", "3")
     assert.fieldEquals("EscrowOfferStats", "global", "open", "0")
+  })
+
+  test("expiresAt stays null when settlementPeriod() reverts", () => {
+    createMockedFunction(ESCROW, "settlementPeriod", "settlementPeriod():(uint256)").reverts()
+    listAndAccept(1)
+    assert.fieldEquals("EscrowOffer", key(1), "acceptedAt", "200")
+    let offer = EscrowOffer.load(key(1))!
+    assert.assertTrue(offer.expiresAt === null)
   })
 
   test("events for unknown offers are ignored", () => {
