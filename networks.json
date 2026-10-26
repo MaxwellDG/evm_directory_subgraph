@@ -7,6 +7,10 @@
     "Escrow": {
       "address": "0x1Ad0aD503C0769B97DE1d1B2C25521204C935A6b",
       "startBlock": 11766363
+    },
+    "DirectoryEscrow": {
+      "address": "0x0000000000000000000000000000000000000000",
+      "startBlock": 0
     }
   }
 }
