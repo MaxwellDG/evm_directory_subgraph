@@ -166,3 +166,97 @@ type EscrowStats @entity(immutable: false) {
   disputed: BigInt!
   updatedAt: BigInt!
 }
+
+# ---------------------------------------------------------------------------
+# DirectoryEscrow: our own Chainlink-priced Escrow from evm_directory_chain
+# (contracts/Escrow.sol). Mirrors its on-chain `Status` enum.
+# ---------------------------------------------------------------------------
+
+enum OfferSide {
+  SELL
+  BUY
+}
+
+enum OfferStatus {
+  OPEN
+  ACCEPTED
+  CANCELLED
+  COMPLETED
+  REFUNDED
+  EXPIRED
+}
+
+enum OfferEventType {
+  CREATED
+  ACCEPTED
+  CANCELLED
+  SALE_EXECUTED
+  REFUNDED
+  EXPIRED
+}
+
+"One offer on a DirectoryEscrow contract."
+type EscrowOffer @entity(immutable: false) {
+  "<contract address>-<offerId>"
+  id: ID!
+  offerId: BigInt!
+  contract: Bytes!
+  side: OfferSide!
+  creator: Bytes!
+  "Zero address for an open buy offer until accepted"
+  seller: Bytes!
+  "Zero address for an open sell listing until accepted"
+  buyer: Bytes!
+  "Price in wei"
+  amount: BigInt!
+  "USD value (18 decimals) from the Chainlink ETH/USD feed at creation"
+  usdValue: BigInt!
+
+  status: OfferStatus!
+  "PENDING until the offer closes; SUCCEEDED on sale, FAILED on cancel/refund/expiry"
+  outcome: EscrowOutcome!
+
+  createdAt: BigInt!
+  createdBlock: BigInt!
+  createdTx: Bytes!
+  acceptedAt: BigInt
+  "Address that cancelled, refunded or expired the offer"
+  closedBy: Bytes
+  closedAt: BigInt
+  updatedAt: BigInt!
+
+  events: [EscrowOfferEvent!]! @derivedFrom(field: "offer")
+}
+
+"Immutable log of every DirectoryEscrow event."
+type EscrowOfferEvent @entity(immutable: true) {
+  id: Bytes!
+  offer: EscrowOffer!
+  type: OfferEventType!
+  actor: Bytes
+  amount: BigInt
+  blockNumber: BigInt!
+  blockTimestamp: BigInt!
+  transactionHash: Bytes!
+}
+
+"Aggregated DirectoryEscrow counters. Single entity with id \"global\"."
+type EscrowOfferStats @entity(immutable: false) {
+  id: ID!
+  created: BigInt!
+  "Offers not yet closed (open or accepted)"
+  open: BigInt!
+  accepted: BigInt!
+  succeeded: BigInt!
+  "cancelled + refunded + expired"
+  failed: BigInt!
+  completed: BigInt!
+  cancelled: BigInt!
+  refunded: BigInt!
+  expired: BigInt!
+  "Total wei paid out to sellers"
+  volume: BigInt!
+  "Total USD value (18 decimals) of completed sales"
+  volumeUsd: BigInt!
+  updatedAt: BigInt!
+}

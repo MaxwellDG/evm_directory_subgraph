@@ -83,3 +83,40 @@ dataSources:
         - event: DisputeResolved(indexed uint256,indexed address,uint16,uint256,uint256,uint256)
           handler: handleDisputeResolved
       file: ./src/escrow.ts
+  # Our own Escrow from evm_directory_chain (contracts/Escrow.sol): ETH offers
+  # priced with the Chainlink ETH/USD feed, with a settlement period and a
+  # Chainlink Automation upkeep that expires unsettled offers.
+  # NOT DEPLOYED YET: replace the zero address and startBlock (also in
+  # networks.json) after `ignition deploy` on Sepolia.
+  - kind: ethereum
+    name: DirectoryEscrow
+    network: sepolia
+    source:
+      address: "0x0000000000000000000000000000000000000000"
+      abi: DirectoryEscrow
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - EscrowOffer
+        - EscrowOfferEvent
+        - EscrowOfferStats
+      abis:
+        - name: DirectoryEscrow
+          file: ./abis/DirectoryEscrow.json
+      eventHandlers:
+        - event: OfferCreated(indexed uint256,indexed address,indexed address,address,uint8,uint256,uint256)
+          handler: handleOfferCreated
+        - event: OfferAccepted(indexed uint256,indexed address,indexed address,uint256)
+          handler: handleOfferAccepted
+        - event: OfferCancelled(indexed uint256,indexed address)
+          handler: handleOfferCancelled
+        - event: SaleExecuted(indexed uint256,indexed address,indexed address,uint256,uint256)
+          handler: handleSaleExecuted
+        - event: Refunded(indexed uint256,indexed address,indexed address,uint256)
+          handler: handleOfferRefunded
+        - event: OfferExpired(indexed uint256,indexed address,indexed address,uint256)
+          handler: handleOfferExpired
+      file: ./src/directory-escrow.ts
