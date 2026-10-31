@@ -8,11 +8,17 @@
     "create-local": "graph create --node http://localhost:8020/ escrow-tracking",
     "remove-local": "graph remove --node http://localhost:8020/ escrow-tracking",
     "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 escrow-tracking",
-    "test": "graph test"
+    "test": "graph test",
+    "rpc-proxy:local": "node scripts/rpc-proxy.mjs",
+    "stack:local": "bash scripts/local-stack.sh",
+    "create:hardhat": "graph create --node http://localhost:8020/ escrow-local",
+    "deploy:hardhat": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 --version-label v0.0.1 escrow-local subgraph.local.yaml"
   },
   "dependencies": {
     "@graphprotocol/graph-cli": "0.98.1",
     "@graphprotocol/graph-ts": "0.37.0"
   },
-  "devDependencies": { "matchstick-as": "0.6.0" }
+  "devDependencies": {
+    "matchstick-as": "0.6.0"
+  }
 }

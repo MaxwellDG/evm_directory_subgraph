@@ -1,0 +1,41 @@
+# Local dev manifest: only DirectoryEscrow, indexed from a local Hardhat node
+# (chain 31337, graph-node network name `hardhat`). The address is the deterministic
+# first EscrowLocal deployment from evm_directory_chain on a fresh node.
+specVersion: 1.3.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: DirectoryEscrow
+    network: hardhat
+    source:
+      address: "0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512"
+      abi: DirectoryEscrow
+      startBlock: 0
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - EscrowOffer
+        - EscrowOfferEvent
+        - EscrowOfferStats
+      abis:
+        - name: DirectoryEscrow
+          file: ./abis/DirectoryEscrow.json
+      eventHandlers:
+        - event: OfferCreated(indexed uint256,indexed address,indexed address,address,uint8,uint256,uint256)
+          handler: handleOfferCreated
+        - event: OfferAccepted(indexed uint256,indexed address,indexed address,uint256)
+          handler: handleOfferAccepted
+        - event: OfferCancelled(indexed uint256,indexed address)
+          handler: handleOfferCancelled
+        - event: SaleExecuted(indexed uint256,indexed address,indexed address,uint256,uint256)
+          handler: handleSaleExecuted
+        - event: Refunded(indexed uint256,indexed address,indexed address,uint256)
+          handler: handleOfferRefunded
+        - event: OfferExpired(indexed uint256,indexed address,indexed address,uint256)
+          handler: handleOfferExpired
+      file: ./src/directory-escrow.ts
